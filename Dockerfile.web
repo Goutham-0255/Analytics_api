@@ -1,0 +1,48 @@
+# 1 - Download & Install Python 3
+FROM python:3.13.2-slim-bullseye
+
+# Set Python-related environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# 2 - Create Virtual Environment
+RUN python -m venv /opt/venv
+ENV PATH=/opt/venv/bin:$PATH
+
+# Install os dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libjpeg-dev \
+    libcairo2 \
+    gcc \
+    # Added 'sed' here just in case the OS doesn't have it
+    sed \ 
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /code
+
+# 3 - Install Python Packages
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r /tmp/requirements.txt
+
+# 4 - Copy Code and Script
+COPY ./src /code
+COPY ./boot/docker-run.sh /opt/run.sh
+
+# --- THE FIX FOR EXEC FORMAT ERROR ---
+# This removes hidden Windows characters (\r) from the script
+RUN sed -i 's/\r$//' /opt/run.sh
+# --------------------------------------
+
+RUN chmod +x /opt/run.sh
+
+# Clean up
+RUN apt-get remove --purge -y gcc && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Run the project
+CMD ["/opt/run.sh"]

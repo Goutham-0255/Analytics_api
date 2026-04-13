@@ -1,0 +1,1 @@
+docker build analytical-api -f Dockerfile.web .
