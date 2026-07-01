@@ -1,10 +1,19 @@
 from typing import Union
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
+from api.events.routing import router as event_router
+from api.db.session import init_db
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # This fires up the engine and maps tables right before the app takes requests
+    init_db()
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+app.include_router(event_router, prefix="/api/events")
 
 
 @app.get("/")

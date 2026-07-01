@@ -1,7 +1,9 @@
 fastapi
 uvicorn
 gunicorn
-timescaledb
+
 sqlmodel
 pydantic
 sqlalchemy
+python-decouple
+psycopg[binary]

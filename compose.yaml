@@ -1,5 +1,4 @@
 services:
-
   app:
     image: analytics-api:v1
     build: 
@@ -11,15 +10,22 @@ services:
       - .env
     ports:
       - "8002:8002"
-    
     command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
     volumes:
       - ./src:/code:rw
-    develop:
-      watch:
-        - action: rebuild
-          path: Dockerfile
-        - action: rebuild
-          path: requirements.txt
-        - action: rebuild
-          path: compose.yaml
+    depends_on:
+      - db
+
+  db:
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: timescale_user
+      POSTGRES_PASSWORD: timePW
+      POSTGRES_DB: timescale_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+
+volumes:
+  timescale_data:
